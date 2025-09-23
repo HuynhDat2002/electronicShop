@@ -88,7 +88,20 @@ services:
   #     mode: replicated
   #     replicas: 1
 
+  frontend-user-electronic:
+    image: tdat/frontenduser-electronic:dev
+    restart: always
+    deploy:
+      replicas: 1
 
+    env_file:
+      - ./frontendUser/.env.development
+    expose:
+      - 3001
+    ports:
+      - '3001:3001'
+    volumes:
+      - .:/app/
   user-electronic:
     image: tdat/user-electronic:dev
     restart: always
@@ -104,6 +117,8 @@ services:
       - 9000
     volumes:
       - .:/app/
+
+
 
   catalog-electronic:
     image: tdat/catalog-electronic:dev
