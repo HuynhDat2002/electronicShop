@@ -8,7 +8,7 @@ FROM base AS dev
 COPY package*.json ./
 RUN npm install
 COPY . .
-EXPOSE 3000
+EXPOSE 3001
 CMD ["npm","run","dev"]
 
 
@@ -27,5 +27,5 @@ COPY --from=builder /app/frontendUser/package.json ./package.json
 COPY --from=builder /app/frontendUser/package-lock.json ./package-lock.json
 
 RUN npm ci --omit=dev
-EXPOSE 3000
+EXPOSE 3001
 CMD [ "npm","start" ]
