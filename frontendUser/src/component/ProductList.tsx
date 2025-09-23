@@ -68,7 +68,7 @@ export default function CourseList({ courses }: { courses: Course[] }) {
                 {courses.map((course: Course) => (
                     <div key={course.id} className="">
 
-                        <CourseCard course={course} />
+                        <CourseCard product={course} />
                     </div>
                 ))}
             </div>

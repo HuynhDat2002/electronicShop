@@ -1,4 +1,3 @@
-import { P } from "pino";
 import { PaymentGateway } from "./payment.type";
 import Stripe from "stripe";
 
