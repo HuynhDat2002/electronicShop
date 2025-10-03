@@ -1,6 +1,6 @@
-import { CreateProductRequest } from "./product.dto";
+import { CreateSpuRequest } from "./spu.dto";
 
 export type CatalogProduct={
     id:number,
 
-} & Partial<CreateProductRequest>
+} & Partial<CreateSpuRequest>
