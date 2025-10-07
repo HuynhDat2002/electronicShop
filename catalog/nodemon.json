@@ -1,5 +1,5 @@
 {
     "watch":["src","prisma/schema.prisma"],
     "ext":"ts,json",
-    "exec": "npx prisma migrate deploy && tsx watch server.ts"
+    "exec": "tsx watch server.ts"
 }

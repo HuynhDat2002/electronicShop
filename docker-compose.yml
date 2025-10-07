@@ -93,3 +93,6 @@ services:
       dockerfile: Dockerfile
       context: ./proxy
     image: tdat/nginx-electronic:latest # owasp/modsecurity-crs:nginx #reverse-proxy # owasp/modsecurity-crs:nginx 
+    ports:
+      - "80:80"
+      - "8080:8080"

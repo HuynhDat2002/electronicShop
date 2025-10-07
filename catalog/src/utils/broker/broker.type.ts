@@ -1,3 +1,4 @@
+import { Consumer, Producer } from "kafkajs"
 import { MessageType, CatalogEvent, TOPIC_TYPE } from "../../types"
 
 export interface PublishType{
@@ -12,15 +13,16 @@ export type MessageHandler = (input:MessageType)=>void
 
 export type MessageBrokerType = {
     //producer
-    connectProducer:<T>()=>Promise<T>
-    disconnectProducer:()=>Promise<void>
+    connectProducer:<T>(producer:Producer)=>Promise<T>
+    disconnectProducer:(producer:Producer)=>Promise<void>
     publish: (data:PublishType)=>Promise<boolean>
 
     //consumer
-    connectConsumer:<T>()=>Promise<T>
-    disconnectConsumer:()=>Promise<void>
+    connectConsumer:<T>(consumer:Consumer)=>Promise<T>
+    disconnectConsumer:(consumer:Consumer)=>Promise<void>
+    runEachMessage:(consumer:Consumer)=>Promise<void>
     subscribe: (
-        messageHandler:MessageHandler,
+        consumer:Consumer,
         topic:TOPIC_TYPE
     )=>Promise<void>
 }

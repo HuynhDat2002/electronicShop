@@ -8,7 +8,7 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
-  
+
   kafka-electronic:
     image: confluentinc/cp-kafka:7.4.3
     environment:
@@ -22,9 +22,8 @@ services:
     depends_on:
       - zookeeper-electronic
 
-
   elasticsearch-electronic:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.1
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.18.7
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
@@ -41,52 +40,15 @@ services:
     volumes:
       - electronic-elastic:/usr/share/elasticsearch/data
 
-  # mysql-kafka-catalog:
-  #   image: mysql:8
-  #   restart: always
-  #   environment:
-  #     MYSQL_USER: kafka_catalog
-  #     MYSQL_PASSWORD: trongdat1335
-  #     MYSQL_ROOT_PASSWORD: trongdatroot
-  #     MYSQL_DATABASE: catalog
-  #   ports:
-  #     - "3302:3306"
-  #   volumes:
-  #     - mysql-kafka-catalog:/var/lib/mysql
-  #   deploy:
-  #     mode: replicated
-  #     replicas: 1
-
-  # mysql-kafka-order:
-  #   image: mysql:8
-  #   restart: always
-  #   environment:
-  #     MYSQL_USER: kafka_order
-  #     MYSQL_PASSWORD: trongdat1335
-  #     MYSQL_ROOT_PASSWORD: trongdatroot
-  #     MYSQL_DATABASE: order
-  #   ports:
-  #     - "3303:3306"
-  #   volumes:
-  #     - mysql-kafka-order:/var/lib/mysql
-  #   deploy:
-  #     mode: replicated
-  #     replicas: 1
-  # mysql-kafka-user:
-  #   image: mysql:8
-  #   restart: always
-  #   environment:
-  #     MYSQL_USER: kafka_user
-  #     MYSQL_PASSWORD: trongdat1335
-  #     MYSQL_ROOT_PASSWORD: trongdatroot
-  #     MYSQL_DATABASE: user
-  #   ports:
-  #     - "3300:3306"
-  #   volumes:
-  #     - mysql-kafka-user:/var/lib/mysql
-  #   deploy:
-  #     mode: replicated
-  #     replicas: 1
+  kibana-electronic:
+    image: docker.elastic.co/kibana/kibana:8.18.7
+    restart: always
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch-electronic:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch-electronic
 
   frontend-user-electronic:
     image: tdat/frontenduser-electronic:dev
@@ -99,7 +61,7 @@ services:
     expose:
       - 3001
     ports:
-      - '3001:3001'
+      - "3001:3001"
     volumes:
       - .:/app/
   user-electronic:
@@ -108,7 +70,7 @@ services:
     deploy:
       replicas: 1
     environment:
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_URL=http://elasticsearch-electronic:9200
     depends_on:
       - kafka-electronic
     env_file:
@@ -118,15 +80,13 @@ services:
     volumes:
       - .:/app/
 
-
-
   catalog-electronic:
     image: tdat/catalog-electronic:dev
     restart: always
     deploy:
       replicas: 1
     environment:
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_URL=http://elasticsearch-electronic:9200
     depends_on:
       - kafka-electronic
       - elasticsearch-electronic
@@ -143,7 +103,7 @@ services:
     deploy:
       replicas: 1
     environment:
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_URL=http://elasticsearch-electronic:9200
     depends_on:
       - kafka-electronic
     env_file:
@@ -159,7 +119,7 @@ services:
     deploy:
       replicas: 1
     environment:
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_URL=http://elasticsearch-electronic:9200
     depends_on:
       - kafka-electronic
     env_file:
@@ -169,10 +129,9 @@ services:
     volumes:
       - .:/app/
 
-
   nginx-electronic:
     container_name: nginx-electronic
-    image: tdat/nginx-electronic:latest # owasp/modsecurity-crs:nginx #reverse-proxy # owasp/modsecurity-crs:nginx 
+    image: tdat/nginx-electronic:latest # owasp/modsecurity-crs:nginx #reverse-proxy # owasp/modsecurity-crs:nginx
     depends_on:
       - user-electronic
       - catalog-electronic
@@ -185,15 +144,6 @@ services:
       - ./proxy/nginx.conf:/etc/nginx/nginx.conf
       - /var/log/nginx:/var/log/nginx
 
-
-
-  
 volumes:
-  # mysql-kafka-catalog:
-  #   external: true
-  # mysql-kafka-order:
-  #   external: true
-  # mysql-kafka-user:
-  #   external: true
   electronic-elastic:
     driver: local

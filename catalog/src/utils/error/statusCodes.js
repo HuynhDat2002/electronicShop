@@ -1,0 +1,23 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Status_Codes = void 0;
+exports.Status_Codes = {
+    OK: 200,
+    BAD_REQUEST: 400,
+    NOT_FOUND: 404,
+    INTERNAL_SERVER_ERROR: 500,
+    UNAUTHORIZED: 401,
+    FORBIDDEN: 403,
+    CONFLICT: 409,
+    TOO_MANY_REQUESTS: 429,
+    GONE: 410,
+    LENGTH_REQUIRED: 411,
+    PRECONDITION_FAILED: 412,
+    PAYLOAD_TOO_LARGE: 413,
+    REQUEST_ENTITY_TOO_LARGE: 413,
+    UNSUPPORTED_MEDIA_TYPE: 415,
+    REQUESTED_RANGE_NOT_SATISFIABLE: 416,
+    EXPECTATION_FAILED: 417,
+    IM_USED: 423,
+    LOCKED: 423,
+};
