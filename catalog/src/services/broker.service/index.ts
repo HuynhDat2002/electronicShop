@@ -6,21 +6,19 @@ import { SpuRepository } from '@/repositories/spu.repository';
 import { MessageBroker } from '@/utils/broker';
 
 export class BrokerService {
-  private producer: Producer | null = null;
-  private consumer: Consumer | null = null;
-  private spuService: SpuService;
+  private producer: Producer;
+  private consumer: Consumer;
 
-  constructor(spuService: SpuService) {
-    this.spuService = spuService;
+  constructor() {
   }
 
   public async initializeBroker() {
-    this.producer = await MessageBroker.connectProducer<Producer>();
+    this.producer = await MessageBroker.connectProducer<Producer>(this.producer);
     this.producer.on('producer.connect', async () => {
       console.log('Catalog Service Producer connected successfully');
     });
 
-    this.consumer = await MessageBroker.connectConsumer<Consumer>();
+    this.consumer = await MessageBroker.connectConsumer<Consumer>(this.consumer);
     this.consumer.on('consumer.connect', async () => {
       console.log('Catalog Service Consumer connected successfully');
     });
@@ -28,9 +26,10 @@ export class BrokerService {
     // keep listening to consumers events
     // perform the action based on the event
     await MessageBroker.subscribe(
-      this.spuService.handleBrokerMessage.bind(this.spuService),
+      this.consumer,
       'CatalogEvents'
     );
+    MessageBroker.runEachMessage(this.consumer)
   }
 
   // publish discontinue product event

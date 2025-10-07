@@ -1,8 +1,8 @@
 import { CatalogProduct } from '@/dto';
-import { SPU } from '@/models/spu.model';
+import { SKU } from '@/models/sku.model';
 import { Client } from '@elastic/elasticsearch';
 import { errorResponse } from '@/utils';
-export class SpuElasticSearch {
+export class SkuElasticSearch {
   private client: Client;
   private indexName: string;
   constructor(client: Client, indexName: string) {
@@ -17,36 +17,36 @@ export class SpuElasticSearch {
 
       return result._source;
     } catch (error) {
-      throw new errorResponse.NotFound('Not found spu');
+      throw new errorResponse.NotFound('Not found sku');
     }
   }
 
-  async create(data: SPU) {
+  async create(data: SKU) {
     try {
       const result = await this.client.index({
         index: this.indexName,
-        id: data.spu_id.toString(),
+        id: data.sku_id.toString(),
         document: data,
       });
-      console.log('spu created in elasticsearch', result);
+      console.log('sku created in elasticsearch', result);
     } catch (error) {
-      console.log('spu create error', error);
+      console.log('sku create error', error);
     }
   }
 
-  async update(data: SPU) {
+  async update(data: SKU) {
     try {
       const exists = await this.client.exists({
         index: this.indexName,
-        id: data.spu_id.toString(),
+        id: data.sku_id.toString(),
       });
       if (exists) {
         const result = await this.client.index({
           index: this.indexName,
-          id: data.spu_id.toString(),
+          id: data.sku_id.toString(),
           document: data,
         });
-        console.log('spu updated in elasticsearch', result);
+        console.log('sku updated in elasticsearch', result);
       }
     } catch (error) {
       console.log('product update in elasticsearch error');

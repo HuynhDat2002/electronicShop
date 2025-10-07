@@ -13,9 +13,14 @@ const reservationSchema = new Schema(
         return `reser_${Date.now()}_${Math.floor(1 + Math.random() * 10)}`;
       },
     },
-    reser_inventory_id: {
+    reser_inventory: {
       type: Schema.Types.ObjectId,
       ref: "Inventory",
+    },
+    reser_inventory_id: {
+      type: String,
+      required:true,
+      index:true  
     },
     reser_order_id: String,
     reser_quantity: Number,

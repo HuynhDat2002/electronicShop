@@ -1,10 +1,12 @@
-import { Types } from 'mongoose';
+import { Schema, Types } from 'mongoose';
+import { SKU } from './sku.model';
 
 export class SPU {
   constructor(
     public readonly spu_id: string, // cannot update
     public readonly spu_name: string,
     public readonly spu_slug: string,
+    public readonly spu_total_sold:number,
     public spu_image?: Array<{
       image_id?: string;
       image_url: string;
@@ -21,10 +23,13 @@ export class SPU {
     public readonly createdAt?: Date,
     public readonly updatedAt?: Date,
     public readonly spu_description?: string,
-    public readonly _id?: Types.ObjectId
+    public readonly _id?: Schema.Types.ObjectId,
+    public readonly spu_attributes?:Array<string>,
+    public readonly spu_skus?:Array<string>|Array<SKU>,
+    public readonly spu_variants?:Array<string>,
   ) {}
 
-  static CreateInput: Omit<SPU, 'spu_id' | 'spu_slug' | 'createdAt' | '_id'>;
+  static CreateInput: Omit<SPU, 'spu_id' | 'spu_slug' | 'createdAt' | '_id' |'spu_ratingAverage'|'spu_attributes'|'spu_skus'|'spu_variants'|'spu_total_sold'>;
   static UpdateInput: Partial<Omit<SPU, 'spu_image'|'spu_id' | 'spu_slug' | 'createdAt' | '_id'>> & {
     id:string
   };

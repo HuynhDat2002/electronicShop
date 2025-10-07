@@ -25,6 +25,9 @@ export class CreateRequest {
   @rule.IsOptional()
   @rule.IsString()
   spu_description: string;
+
+  @rule.IsOptional()
+  spu_status: myType.SPU_Status;
 }
 
 export class UpdateRequest {

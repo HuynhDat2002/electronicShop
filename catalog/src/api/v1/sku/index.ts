@@ -1,109 +1,42 @@
-import { SpuRepository } from '../../../repositories/spu.repository';
-import {asyncHandler} from '@/helpers';
+import { SkuRepository } from '../../../repositories/sku.repository';
+import { asyncHandler } from '@/helpers';
 import express, { Request, Response, NextFunction } from 'express';
-import { SpuService } from '@/services';
+import { SkuService } from '@/services';
 import 'module-alias/register';
-import { RequestValidator } from '../../../utils/requestValidator';
-import { CreateProductRequest, UpdateProductRequest } from '@/dto';
-import { BrokerService } from '@/services/broker.service';
+
+import multer from 'multer';
+import { SkuController } from './sku.controller';
+const upload = multer({ dest: './src/upload/' });
+
 const router = express.Router();
 
 console.log('from router');
-export const spuService = new SpuService(new SpuRepository());
-export const brokerService = new BrokerService(spuService);
+const skuController = new SkuController();
+export const skuService = new SkuService(new SkuRepository());
 
-//endpoints
-brokerService.initializeBroker();
-router.get('/v1/test', async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+router.get('/test', async (req: Request, res: Response, next: NextFunction): Promise<any> => {
   return res.status(201).json({ message: 'Test Successfully' });
 });
 router.post(
-  '/v1/product',
-  async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    const { errors, input } = await RequestValidator(CreateProductRequest, req.body);
-    if (errors) return res.status(400).json(errors);
-    const data = await spuService.createProduct(input);
-    return res.status(201).json(data);
-  }
+  '/sku',
+  upload.single('sku_image'),
+  asyncHandler(skuController.create)
 );
 
-router.patch(
-  '/v1/product/:id',
-  async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    try {
-      console.log('update');
-      const { errors, input } = await RequestValidator(UpdateProductRequest, req.body);
-      if (errors) return res.status(400).json(errors);
+// router.patch('/sku/:id', upload.single('sku_thumb'), asyncHandler(skuController.update));
 
-      const id = parseInt(req.params.id) || 0;
-      const data = await spuService.updateProduct({ id, ...input });
-      return res.status(200).json(data);
-    } catch (err) {
-      const error = err as Error;
-      return res.status(500).json(error.message);
-    }
-  }
-);
+// router.get('/skus', asyncHandler(skuController.getskus));
 
-router.get(
-  '/v1/products',
-  async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    try {
-      const limit = Number(req.query.limit);
-      const offset = Number(req.query.offset);
-      const search = req.query.search as string;
-      console.log('search', typeof search);
-      const data = await spuService.getProducts(limit, offset, search);
-      return res.status(200).json(data);
-    } catch (err) {
-      const error = err as Error;
-      return res.status(500).json(error.message);
-    }
-  }
-);
+// router.get('/sku/:id', asyncHandler(skuController.getskuById));
 
-router.get(
-  '/v1/product/:id',
-  async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    try {
-      const id = req.params.id as string;
-
-      const data = await spuService.getProduct(id);
-      return res.status(200).json(data);
-    } catch (err) {
-      return next(err);
-    }
-  }
-);
+router.delete('/sku/:id', asyncHandler(skuController.delete));
 
 router.delete(
-  '/v1/product/:id',
-  async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    try {
-      const id = Number(req.params.id);
-
-      const data = await spuService.deleteProduct(id);
-      return res.status(200).json(data);
-    } catch (err) {
-      const error = err as Error;
-      return res.status(500).json(error.message);
-    }
-  }
-);
-
-router.post(
-  '/v1/product/stock',
-  async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    try {
-      const ids = req.body.ids;
-
-      const data = await spuService.getProductStock(ids);
-      return res.status(200).json(data);
-    } catch (err) {
-      const error = err as Error;
-      return res.status(500).json(error.message);
-    }
-  }
+  '/sku/delete/all',
+  asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const deleteAll = await skuService.deleteAll();
+    return res.status(200).json(deleteAll);
+  })
 );
 
 export default router;

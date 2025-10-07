@@ -10,20 +10,23 @@ export const spuSchema = new Schema(
   {
     spu_id: {
       type: String,
+      index: true,
       required: true,
       unique: true,
       default: function () {
-        return `spu_${Date.now()}_${Math.floor(1 + Math.random() * 10)}`;
+        return `spu_${Date.now()}_${Math.floor(1 + Math.random() * 100000000)}`;
       },
     },
     spu_name: {
       type: String,
       required: true,
+      index: true,
       trim: true,
     },
     spu_slug: {
       type: String,
       unique: true,
+      index: true,
     },
     spu_image: {
       type: [
@@ -49,22 +52,55 @@ export const spuSchema = new Schema(
         image_name: String,
         image_url: String,
       },
-      default:{
-        image_id: "",
-        image_name: "",
-        image_url: "",
-      }     
+      default: {
+        image_id: '',
+        image_name: '',
+        image_url: '',
+      },
     },
     spu_status: {
       type: String,
       enum: ['draft', 'published', 'deleted', 'unPublished'],
       default: 'unPublished',
+      index:true
     },
     spu_description: {
       type: String,
       trim: true,
+      default: '',
     },
-
+    spu_total_sold: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    spu_variants: {
+      type: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: 'Variant',
+        },
+      ],
+      default: [],
+    },
+    spu_skus: {
+      type: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: 'SKU',
+        },
+      ],
+      default: [],
+    },
+    spu_attributes: {
+      type: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: 'Attribute',
+        },
+      ],
+      default: [],
+    },
     createdAt: { type: Date, default: Date.now() },
     updatedAt: { type: Date, default: Date.now() },
   },
@@ -76,6 +112,7 @@ export const spuSchema = new Schema(
 
 spuSchema.index({
   spu_name: 'text',
+  spu_id: 'text',
   spu_slug: 'text',
   spu_description: 'text',
 });
@@ -92,14 +129,14 @@ spuSchema.index({ 'product_attributes.category': 1 });
 // Virtual để lấy SKUs
 spuSchema.virtual('skus', {
   ref: 'SKU',
-  localField: '_id',
+  localField: 'spu_id',
   foreignField: 'sku_spu_id',
 });
 
 // Virtual để lấy Attribute objects đầy đủ (thay vì chỉ có ID)
 spuSchema.virtual('fullAttributes', {
   ref: 'Attribute',
-  localField: '_id',
+  localField: 'spu_id',
   foreignField: 'attribute_spu_id',
 });
 
@@ -112,38 +149,4 @@ const spuModel = model(DOCUMENT_NAME, spuSchema);
 
 export { spuModel };
 
-// spu_variations: [
-//   {
-//     variation: {
-//       type: Schema.Types.ObjectId,
-//       ref: "Variation",
-//       required: true,
-//     },
-//     options: [String],
-//   },
-// ], // VD: [{"variation": "color", "options": [{value:"red",code:"#bb0000"}, {value:"blue",code:"#1338be"}]}, {"variation": "storage", "options": ["128GB", "256GB"]}]
-// spu_attributes: [
-//   {
-//     attribute: {
-//       type: Schema.Types.ObjectId,
-//       ref: "Attribute",
-//       required: true,
-//     },
-//     value: Schema.Types.Mixed,
-//   },
-// ], // VD: [{"attribute": "brand", "value": "Apple"}, {"attribute": "os", "value": "iOS 17"}]
-
-// {
-//   "_id": "123",
-//   "name": "iPhone 14 Plus 256GB",
-//   "sections": [
-//     {
-//       "title": "Cấu hình máy được hỗ trợ bởi bộ vi xử lý mạnh mẽ",
-//       "content": "Ngoài việc sở hữu chipset A15 Bionic thế hệ mới..."
-//     },
-//     {
-//       "title": "Sở hữu các tính năng hiện đại cùng camera trước có độ phân giải cao",
-//       "content": "Bên cạnh cụm camera sau được thiết kế chéo độc đáo..."
-//     }
-//   ]
-// }
+//variationSchema.post('save', async function (doc) { const Spu = this.model('SPU'); // Khi variant được tạo, thêm ID của nó vào SPU await Spu.findByIdAndUpdate( doc.variation_spu_id, { $addToSet: { variations: doc._id } } // $addToSet giúp không trùng lặp ); });

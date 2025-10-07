@@ -13,7 +13,7 @@ export const CreateCart = async (input:CartRequestInput & {customerId:number},re
     if(product.stock<input.qty){
         throw new errorResponse.NotFound("Product is out of stock")
     }
-
+    
     //find if the product is already in the cart
     const existingItem = await repo.findCartByProductId(input.customerId,input.productId)
 

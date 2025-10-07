@@ -11,4 +11,5 @@ export interface ISpuRepository {
   find(limit: number, offset: number): Promise<SPU[]>;
   findOne(id: string): Promise<SPU>;
   getSpuStock(ids: string[]): Promise<SPU[]>;
+  deleteAll():Promise<any>;
 }

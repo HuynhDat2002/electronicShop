@@ -4,7 +4,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import { SpuService } from '@/services';
 import 'module-alias/register';
 import { RequestValidator } from '../../../utils/requestValidator';
-import { CreateRequest, UpdateRequest } from '@/dto';
+import { spuDto } from '@/dto';
 import { BrokerService } from '@/services/broker.service';
 import { errorResponse } from '@/utils';
 
@@ -17,7 +17,7 @@ const router = express.Router();
 console.log('from router');
 const spuController = new SpuController();
 export const spuService = new SpuService(new SpuRepository());
-export const brokerService = new BrokerService(spuService);
+export const brokerService = new BrokerService();
 
 //endpoints
 brokerService.initializeBroker();
@@ -37,14 +37,16 @@ router.patch('/spu/:id', upload.single('spu_thumb'), asyncHandler(spuController.
 
 router.get('/spus', asyncHandler(spuController.getSpus));
 
-router.get(
-  '/spu/:id',
-  asyncHandler(spuController.getSpu)
-);
+router.get('/spu/:id', asyncHandler(spuController.getSpuById));
+
+router.delete('/spu/:id', asyncHandler(spuController.delete));
 
 router.delete(
-  '/spu/:id',
- asyncHandler(spuController.delete)
+  '/spu/delete/all',
+  asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const deleteAll = await spuService.deleteAll();
+    return res.status(200).json(deleteAll);
+  })
 );
 
 export default router;

@@ -1,9 +1,12 @@
 import { ElasticSearchService } from '@/services/elasticsearch.service';
 import { EventEmitter } from 'events';
 
+export type SpuEvents='createSpu' | 'updateSpu' | 'deleteSpu'|'deleteIndex'
+export type SkuEvents='createSku' | 'updateSku' | 'deleteSku'|'deleteIndex'
+
 export interface EventPayload {
-  event: 'createSpu' | 'updateSpu' | 'deleteSpu';
-  data: unknown;
+  event: SpuEvents|SkuEvents;
+  data?: any;
 }
 
 export class AppEventListener extends EventEmitter {
@@ -20,7 +23,6 @@ export class AppEventListener extends EventEmitter {
     this.emit(this.eventName, payload);
   }
   listen(elasticSearchInstance: ElasticSearchService) {
-    console.log('helo from elas');
     this.on(this.eventName, (payload: EventPayload) => {
       try {
         console.log('Event received', payload);

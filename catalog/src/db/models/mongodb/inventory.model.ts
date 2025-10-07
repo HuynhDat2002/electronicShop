@@ -14,12 +14,12 @@ const inventorySchema = new Schema(
       },
       index: true,
     },
-
-    inven_sku_id: {
+    inven_sku: {
       type: Schema.Types.ObjectId,
       ref: "SKU",
       index: true,
     },
+    inven_sku_id: { type: String, index: true, required: true }, // để tìm kiếm nhanh
     inven_location: {
       type: String,
       default: "unknow",

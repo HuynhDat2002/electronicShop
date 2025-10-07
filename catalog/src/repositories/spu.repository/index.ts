@@ -5,7 +5,24 @@ import slugify from 'slugify';
 import { mongodb as db } from '@/db';
 import { deleteImage, uploadImage, uploadImages } from '@/utils';
 import { UpdateImage } from '@/types';
+import { omitDataSpu } from '@/utils';
 export class SpuRepository implements ISpuRepository {
+  async deleteAll() {
+    const spus = await db.spuModel.find();
+    for (let i of spus) {
+      if (i.spu_image) {
+        for (let j of i.spu_image) {
+          deleteImage(j.image_id as string);
+        }
+      }
+      if (i.spu_thumb) {
+        deleteImage(i.spu_thumb.image_id as string);
+      }
+    }
+    const deleteA = await db.spuModel.deleteMany();
+    console.log('delete all', deleteA);
+    return deleteA;
+  }
   async create(data: typeof SPU.CreateInput): Promise<SPU> {
     //check product exist
     const checkExist = await db.spuModel.findOne({
@@ -13,7 +30,7 @@ export class SpuRepository implements ISpuRepository {
     });
     if (checkExist)
       throw new errorResponse.ValidationError('This product name has already existed');
-    console.log('data from create', data)
+    console.log('data from create', data);
     //check image file and upload
     if (data.spu_image) {
       data.spu_image = await uploadImages(data?.spu_image, `spu`);
@@ -23,12 +40,7 @@ export class SpuRepository implements ISpuRepository {
     }
 
     //create new
-    const result = new db.spuModel({
-      spu_name: data.spu_name,
-      spu_image: data.spu_image,
-      spu_thumb: data.spu_thumb,
-      spu_description: data.spu_description,
-    });
+    const result = new db.spuModel(data);
     if (!result) {
       if (data.spu_image) {
         for (let i of data.spu_image) {
@@ -45,7 +57,7 @@ export class SpuRepository implements ISpuRepository {
     await result.save();
 
     //return as typeof SPU
-    return result.toObject() as SPU;
+    return omitDataSpu(['_id', '__v'], result.toObject());
   }
   async update(
     data: {
@@ -55,18 +67,18 @@ export class SpuRepository implements ISpuRepository {
     //update
     const { id, ...rest } = data;
     if (rest.spu_thumb) {
-      console.log('thumb from update',rest.spu_thumb)
-      const found = await db.spuModel.findById(id);
+      console.log('thumb from update', rest.spu_thumb);
+      const found = await db.spuModel.findOne({ spu_id: id });
       if (!found) throw new errorResponse.ValidationError('Cannot find product by this id');
       rest.spu_thumb = await uploadImage(rest.spu_thumb, `spu`);
-      console.log('rest thumb',rest.spu_thumb)
-      
+      console.log('rest thumb', rest.spu_thumb);
+
       deleteImage(found.spu_thumb.image_id as string);
     }
 
     const resp = await db.spuModel.findOneAndUpdate(
       {
-        _id: id,
+        spu_id: id,
       },
       {
         $set: rest,
@@ -77,7 +89,7 @@ export class SpuRepository implements ISpuRepository {
     );
     if (!resp) throw new errorResponse.ValidationError('Server Error! Cannot update product');
 
-    const result = resp.toObject() as SPU;
+    const result = omitDataSpu(['_id', '__v'], resp.toObject());
     return result;
   }
 
@@ -85,14 +97,14 @@ export class SpuRepository implements ISpuRepository {
     throw new Error('Method not implemented.');
   }
   async addImage() {}
-  async delete(id:string): Promise<SPU> {
-      const spu = await db.spuModel.findOneAndDelete({_id:id})
-      if(!spu) throw new errorResponse.ValidationError("Cannot delete this product for some reason")
-      for(let i of spu.spu_image){
-        deleteImage(i.image_id as string)
-      }
-      deleteImage(spu.spu_thumb.image_id as string)
-      return spu.toObject() as SPU
+  async delete(id: string): Promise<SPU> {
+    const spu = await db.spuModel.findOneAndDelete({ spu_id: id });
+    if (!spu) throw new errorResponse.ValidationError('Cannot delete this product for some reason');
+    for (let i of spu.spu_image) {
+      deleteImage(i.image_id as string);
+    }
+    deleteImage(spu.spu_thumb.image_id as string);
+    return omitDataSpu(['_id', '__v'], spu.toObject());
   }
   find(limit: number, offset: number): Promise<SPU[]> {
     throw new Error('Method not implemented.');

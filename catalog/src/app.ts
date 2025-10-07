@@ -24,6 +24,10 @@ const userApp = async (app: Express) => {
   //   connectDB();
   instanceMongoDB;
 
+  const brokerService = new BrokerService();
+  
+  //endpoints
+  brokerService.initializeBroker();
   //initialize elasticsearch service
   const elasticSearchService = new ElasticSearchService();
   AppEventListener.instance.listen(elasticSearchService);
@@ -37,7 +41,7 @@ const userApp = async (app: Express) => {
 
   //handling error notfound
   app.use((req: Request, res: Response, next: NextFunction) => {
-    const error: any = new Error('Not found');
+    const error: any = new Error('Not found api');
     error.status = 404;
     next(error);
   });

@@ -1,4 +1,4 @@
-import { CreateRequest, UpdateRequest } from '@/dto';
+import { spuDto } from '@/dto';
 import { SpuRepository } from '@/repositories';
 import { SpuService } from '@/services';
 import { errorResponse, OK, RequestValidator } from '@/utils';
@@ -24,7 +24,7 @@ export class SpuController {
       }))[0] as { image_name: string; image_url: string };
     }
     console.log('files from input', files);
-    let { errors, input } = await RequestValidator(CreateRequest, { ...req.body, ...files });
+    let { errors, input } = await RequestValidator(spuDto.CreateRequest, { ...req.body, ...files });
     if (errors) throw new errorResponse.ValidationError(errors.toString());
     //service
     const data = await spuService.create(input);
@@ -42,11 +42,9 @@ export class SpuController {
         image_name: thumb.originalname,
         image_url: thumb.path,
       } as { image_name: string; image_url: string };
+      req.body = { ...req.body, ...{ spu_thumb: thumb } };
     }
-    const { errors, input } = await RequestValidator(UpdateRequest, {
-      ...req.body,
-      ...{ spu_thumb: thumb },
-    });
+    const { errors, input } = await RequestValidator(spuDto.UpdateRequest, req.body);
     console.log('input update', input);
     if (errors) throw new errorResponse.ValidationError(errors.toString());
 
@@ -59,20 +57,21 @@ export class SpuController {
   }
 
   async getSpus(req: Request, res: Response, next: NextFunction): Promise<any> {
-    const limit = Number(req.query.limit);
-    const offset = Number(req.query.offset);
-    const search = req.query.search as string;
-    console.log('search', typeof search);
-    const data = await spuService.getSpus(limit, offset, search);
+    const limit = Number(req.query.limit)||20;
+    const page = Number(req.query.page)||1;
+    const search = req.query.search as string ||'';
+    const sort = req.query.sort as any
+    console.log('search', req.query);
+    const data = await spuService.getSpus({limit,page,search,sort});
     new OK({
       message: 'Get spus successfully',
       metadata: data,
     }).send(res);
   }
 
-  async getSpu(req: Request, res: Response, next: NextFunction) {
+  async getSpuById(req: Request, res: Response, next: NextFunction) {
     const id = req.params.id as string;
-    const data = await spuService.getSpu(id);
+    const data = await spuService.getSpuById(id);
     new OK({
       message: 'Get spu successfully',
       metadata: data,

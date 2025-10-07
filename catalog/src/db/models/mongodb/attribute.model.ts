@@ -18,10 +18,12 @@ const attributeSchema = new Schema(
         return `attri_${Date.now()}_${Math.floor(1+Math.random()*10)}`
       },
     },
-    attribute_spu_id:{
+    attribute_spu:{
        type: Schema.Types.ObjectId,
       ref: "SPU",
     },
+    attribute_spu_id: { type: String, index: true, required: true }, // để tìm kiếm nhanh
+
     attribute_name: {
       type: String,
       required: true,
