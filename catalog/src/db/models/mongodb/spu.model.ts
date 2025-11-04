@@ -62,7 +62,7 @@ export const spuSchema = new Schema(
       type: String,
       enum: ['draft', 'published', 'deleted', 'unPublished'],
       default: 'unPublished',
-      index:true
+      index: true,
     },
     spu_description: {
       type: String,
@@ -75,13 +75,9 @@ export const spuSchema = new Schema(
       default: 0,
     },
     spu_variants: {
-      type: [
-        {
-          type: Schema.Types.ObjectId,
-          ref: 'Variant',
-        },
-      ],
-      default: [],
+      type: Schema.Types.ObjectId,
+      ref: 'Variant',
+      default: null, // Mỗi SPU chỉ có 1 variant document duy nhất
     },
     spu_skus: {
       type: [
@@ -95,11 +91,19 @@ export const spuSchema = new Schema(
     spu_attributes: {
       type: [
         {
-          type: Schema.Types.ObjectId,
-          ref: 'Attribute',
+          _id: { type: Schema.Types.ObjectId, ref: 'Attribute' },
+          attribute_value_id:{type:String},
+          attribute_name:{type:String},
+          attribute_value:{type:String,required:true},
+          attribute_label:{type:String}
         },
       ],
       default: [],
+    },
+    spu_default_sku: {
+      type: Schema.Types.ObjectId,
+      ref: 'SKU',
+      default: null, // SKU mặc định để hiển thị thumbnail
     },
     createdAt: { type: Date, default: Date.now() },
     updatedAt: { type: Date, default: Date.now() },
@@ -149,4 +153,4 @@ const spuModel = model(DOCUMENT_NAME, spuSchema);
 
 export { spuModel };
 
-//variationSchema.post('save', async function (doc) { const Spu = this.model('SPU'); // Khi variant được tạo, thêm ID của nó vào SPU await Spu.findByIdAndUpdate( doc.variation_spu_id, { $addToSet: { variations: doc._id } } // $addToSet giúp không trùng lặp ); });
+//variantSchema.post('save', async function (doc) { const Spu = this.model('SPU'); // Khi variant được tạo, thêm ID của nó vào SPU await Spu.findByIdAndUpdate( doc.variant_spu_id, { $addToSet: { variants: doc._id } } // $addToSet giúp không trùng lặp ); });

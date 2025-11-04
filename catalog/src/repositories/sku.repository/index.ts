@@ -3,9 +3,37 @@ import { SKU } from '@/models/sku.model';
 import * as errorResponse from '@/utils/error';
 import slugify from 'slugify';
 import { skuModel as db } from '@/db/models/mongodb';
+import { variantModel } from '@/db/models/mongodb';
 import { deleteImage, uploadImage, uploadImages } from '@/utils';
 import { UpdateImage } from '@/types';
-import { omitDataSku } from '@/utils';
+import { omitData } from '@/utils';
+import { VariantType } from '@/types';
+// async function validateVariants(variants: VariantType[]) : Promise<AttributeType[]>{
+//   const newAttrs =await Promise.all(
+//     variants.map(async (variant) => {
+//      const found = await variantModel.findOne({
+//        variant_slug: slugify(variant.attribute_name, { lower: true }),
+//        attribute_options: {
+//          $elemMatch: {
+//            id: attr.attribute_value_id,
+//            value: attr.attribute_value,
+//          },
+//        },
+//        attribute_status: 'active',
+//      });
+//      if (!found) {
+//        throw new errorResponse.ValidationError(
+//          `Attribute ${attr.attribute_name} with value ${attr.attribute_value} does not exists`
+//        );
+//      }
+//      return {
+//          ...attr,
+//          _id: found._id,
+//        }
+//    }) 
+//   )
+//   return newAttrs;
+// }
 export class SkuRepository implements ISkuRepository {
   async create(data: typeof SKU.CreateInput): Promise<SKU> {
     //check product exist
@@ -32,7 +60,7 @@ export class SkuRepository implements ISkuRepository {
     await result.save();
 
     //return as typeof SPU
-    return omitDataSku(['_id', '__v', 'sku_spu'], result.toObject());
+    return omitData<SKU>(['_id', '__v', 'sku_spu'], result.toObject());
   }
   update(data: typeof SKU.UpdateInput): Promise<SKU> {
     throw new Error('Method not implemented.');
@@ -44,7 +72,7 @@ export class SkuRepository implements ISkuRepository {
     const sku = await db.findOneAndDelete({ sku_id: id });
     if (!sku) throw new errorResponse.ValidationError('Cannot delete this sku for some reason');
     deleteImage(sku.sku_image.image_id as string);
-    return omitDataSku(['_id', '__v'], sku.toObject());
+    return omitData<SKU>(['_id', '__v'], sku.toObject());
   }
   find(limit: number, offset: number): Promise<SKU[]> {
     throw new Error('Method not implemented.');

@@ -20,7 +20,7 @@ export class SkuController {
     }
 
     console.log('files from input', file);
-    let { errors, input } = await RequestValidator(skuDto.CreateRequest, { ...req.body, ...{sku_image:file,sku_price:JSON.parse(req.body.sku_price)} });
+    let { errors, input } = await RequestValidator(skuDto.CreateRequest, { ...req.body, ...{sku_image:file,sku_price:JSON.parse(req.body.sku_price),sku_variants:JSON.parse(req.body.sku_variants)} });
     if (errors) throw new errorResponse.ValidationError(errors.toString());
     
     console.log('input from sku create',input)

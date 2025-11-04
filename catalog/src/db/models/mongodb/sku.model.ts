@@ -76,19 +76,21 @@ const skuSchema = new Schema(
       ],
       default: [],
     },
-    sku_variations:{
+    sku_variants: {
       type: [
         {
-          sku_variation_id: {
-            type: Schema.Types.ObjectId,
-            ref: 'Variant',
-          },
-          sku_variation_slug: String,
-          sku_variant_option_value: String, // lấy từ variation_options.value
-          sku_variant_option_label: String, // lấy từ variation_options.label
+          variant_name: { type: String, required: true }, // "Color", "Storage"
+          variant_slug: { type: String, required: true }, // "color", "storage"
+          option_value: { type: String, required: true }, // "red", "128gb"
+          option_label: { type: String, required: true }, // "Đỏ", "128GB"
+          option_code: { type: String, default: '' }, // "#FF0000", ""
         },
       ],
-      default:[]
+      default: [],
+    },
+    sku_tier_index: {
+      type: [Number],
+      default: [], // VD: [0, 1] nghĩa là option thứ 0 của variant thứ 1, option thứ 1 của variant thứ 2
     },
   },
   {
@@ -127,10 +129,10 @@ skuSchema.pre('validate', async function (next) {
     const spu = await this.model('SPU').findOne({ spu_id: this.sku_spu_id });
     if (spu) this.sku_spu = spu._id;
   }
-  next();
   if (this.isNew) {
     (this as any)._wasNew = this.isNew;
   }
+  next();
 });
 
 //==============after===================

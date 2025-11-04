@@ -24,7 +24,7 @@ export class SpuController {
       }))[0] as { image_name: string; image_url: string };
     }
     console.log('files from input', files);
-    let { errors, input } = await RequestValidator(spuDto.CreateRequest, { ...req.body, ...files });
+    let { errors, input } = await RequestValidator(spuDto.CreateRequest, { ...req.body, ...files,...{spu_attributes:JSON.parse(req.body.spu_attributes as string)} });
     if (errors) throw new errorResponse.ValidationError(errors.toString());
     //service
     const data = await spuService.create(input);

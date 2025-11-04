@@ -1,9 +1,9 @@
-import { Schema, model } from "mongoose";
+import mongoose, { Schema, model } from 'mongoose';
 
-const DOCUMENT_NAME = "Inventory";
-const COLLECTION_NAME = "Inventories";
+const DOCUMENT_NAME = 'Inventory';
+const COLLECTION_NAME = 'Inventories';
 
-const inventorySchema = new Schema(
+const invenSchema = new Schema(
   {
     inven_id: {
       type: String,
@@ -16,20 +16,37 @@ const inventorySchema = new Schema(
     },
     inven_sku: {
       type: Schema.Types.ObjectId,
-      ref: "SKU",
+      ref: 'SKU',
       index: true,
     },
     inven_sku_id: { type: String, index: true, required: true }, // để tìm kiếm nhanh
     inven_location: {
       type: String,
-      default: "unknow",
+      default: 'unknow',
     },
     inven_stock: {
       type: Number,
       default: 0,
       required: true,
     },
+    inven_status: {
+      type: String,
+      enum: ['inStock', 'outOfStock', 'discontinued'],
+      default: 'inStock',
+      index: true,
+    },
+    inven_reserved: {
+      type: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: 'Reservation',
+        },
+      ],
+      default: [],
+    },
     inven_available: { type: Number, default: 0 },
+    createdAt: { type: Date, default: Date.now() },
+    updatedAt: { type: Date, default: Date.now() },
   },
   {
     timestamps: true,
@@ -38,13 +55,35 @@ const inventorySchema = new Schema(
 );
 
 // Virtual để lấy SKUs
-inventorySchema.virtual("reser", {
-  ref: "Reservation",
-  localField: "_id",
-  foreignField: "reser_inventory_id",
+invenSchema.virtual('reser', {
+  ref: 'Reservation',
+  localField: '_id',
+  foreignField: 'reser_inventory_id',
+});
+invenSchema.pre('save', async function (next) {
+  if (this.isNew) {
+    (this as any)._wasNew = this.isNew;
+  }
+  next();
 });
 
-const inventoryModel = model(DOCUMENT_NAME, inventorySchema);
+invenSchema.post('save', async function (doc) {
+  if ((this as any)._wasNew) {
+    const Sku = this.model('SKU');
+    await Sku.findByIdAndUpdate(this.inven_sku, {
+      $addToSet: { sku_inventories: this._id },
+    });
+  }
+});
+
+invenSchema.post('findOneAndDelete', async function (doc) {
+  if (!doc) return;
+  const Spu = mongoose.model('SKU');
+  await Spu.findByIdAndUpdate(doc.inven_sku, {
+    $pull: { sku_inventories: doc._id },
+  });
+});
+const inventoryModel = model(DOCUMENT_NAME, invenSchema);
 export { inventoryModel };
 // const stock = await Inventory.aggregate([
 //   {

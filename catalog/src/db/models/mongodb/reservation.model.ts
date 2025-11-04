@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import mongoose, { Schema, model } from "mongoose";
 
 const DOCUMENT_NAME = "Reservation";
 const COLLECTION_NAME = "Reservations";
@@ -30,19 +30,44 @@ const reservationSchema = new Schema(
     },
     expiredAt: {
       type: Date,
+      default: () => new Date(Date.now() + 15 * 60 * 1000), // 15 phút sau
     },
     reser_status: {
       type: String,
       enum: ["pending", "confirmed", "cancelled"],
       default: "pending",
     },
+    createdAt: { type: Date, default: Date.now() },
+    updatedAt: { type: Date, default: Date.now() },
   },
   {
     timestamps: true,
     collection: COLLECTION_NAME,
   }
 );
+reservationSchema.pre('save', async function (next) {
+  if (this.isNew) {
+    (this as any)._wasNew = this.isNew;
+  }
+  next();
+});
 
+reservationSchema.post('save', async function (doc) {
+  if ((this as any)._wasNew) {
+    const Sku = this.model('Inventory');
+    await Sku.findByIdAndUpdate(this.reser_inventory, {
+      $addToSet: { inven_reserved: this._id },
+    });
+  }
+});
+
+reservationSchema.post('findOneAndDelete', async function (doc) {
+  if (!doc) return;
+  const Spu = mongoose.model('Inventory');
+  await Spu.findByIdAndUpdate(doc.reser_inventory, {
+    $pull: { inven_reserved: doc._id },
+  });
+});
 
 const reservationModel = model(DOCUMENT_NAME, reservationSchema);
 export { reservationModel };

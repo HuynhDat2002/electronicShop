@@ -6,7 +6,6 @@ import { NotFound, AuthorizeError, ValidationError } from '@/utils';
 import { OrderWithLineItems } from '@/types/message.type';
 import { AppEventListener } from '@/utils/AppEventListener';
 import { ElasticSearchService } from '@/services/elasticsearch.service';
-import { SkuElasticSearch } from '../elasticsearch.service/sku.elasticsearch/index';
 import { MessageType } from '@/types';
 const elkSearch = new ElasticSearchService();
 export class SkuService {

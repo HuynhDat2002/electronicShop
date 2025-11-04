@@ -2,6 +2,7 @@ import { CatalogProduct } from '@/dto';
 import { SPU } from '@/models/spu.model';
 import { Client } from '@elastic/elasticsearch';
 import { errorResponse } from '@/utils';
+import { VARIANT } from '@/models/variant.model';
 export class SpuElasticSearch {
   private client: Client;
   private indexName: string;
@@ -26,6 +27,18 @@ export class SpuElasticSearch {
       const result = await this.client.index({
         index: this.indexName,
         id: data.spu_id.toString(),
+        document: data,
+      });
+      console.log('spu created in elasticsearch', result);
+    } catch (error) {
+      console.log('spu create error', error);
+    }
+  }
+  async createVariant(data: VARIANT) {
+    try {
+      const result = await this.client.index({
+        index: this.indexName,
+        id: data.variant_spu_id.toString(),
         document: data,
       });
       console.log('spu created in elasticsearch', result);
@@ -64,5 +77,4 @@ export class SpuElasticSearch {
       console.log('error delete elasticsearch', err);
     }
   }
-
 }

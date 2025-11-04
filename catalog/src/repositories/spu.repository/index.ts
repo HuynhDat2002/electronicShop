@@ -4,8 +4,35 @@ import * as errorResponse from '@/utils/error';
 import slugify from 'slugify';
 import { mongodb as db } from '@/db';
 import { deleteImage, uploadImage, uploadImages } from '@/utils';
-import { UpdateImage } from '@/types';
-import { omitDataSpu } from '@/utils';
+import { AttributeType, UpdateImage } from '@/types';
+import { omitData } from '@/utils';
+
+async function validateAttribute(attrs: AttributeType[]) : Promise<AttributeType[]>{
+  const newAttrs =await Promise.all(
+    attrs.map(async (attr) => {
+     const found = await db.attributeModel.findOne({
+       attribute_slug: slugify(attr.attribute_name, { lower: true }),
+       attribute_options: {
+         $elemMatch: {
+           id: attr.attribute_value_id,
+           value: attr.attribute_value,
+         },
+       },
+       attribute_status: 'active',
+     });
+     if (!found) {
+       throw new errorResponse.ValidationError(
+         `Attribute ${attr.attribute_name} with value ${attr.attribute_value} does not exists`
+       );
+     }
+     return {
+         ...attr,
+         _id: found._id,
+       }
+   }) 
+  )
+  return newAttrs;
+}
 export class SpuRepository implements ISpuRepository {
   async deleteAll() {
     const spus = await db.spuModel.find();
@@ -19,7 +46,19 @@ export class SpuRepository implements ISpuRepository {
         deleteImage(i.spu_thumb.image_id as string);
       }
     }
+
+    const skus = await db.skuModel.find();
+    for (let i of skus) {
+      if (i.sku_image) {
+        deleteImage(i.sku_image.image_id as string);
+      }
+    }
     const deleteA = await db.spuModel.deleteMany();
+    await db.skuModel.deleteMany();
+    await db.inventoryModel.deleteMany();
+    await db.reservationModel.deleteMany();
+    await db.attributeModel.deleteMany();
+    await db.variantModel.deleteMany();
     console.log('delete all', deleteA);
     return deleteA;
   }
@@ -28,6 +67,7 @@ export class SpuRepository implements ISpuRepository {
     const checkExist = await db.spuModel.findOne({
       spu_slug: slugify(data.spu_name, { lower: true }),
     });
+
     if (checkExist)
       throw new errorResponse.ValidationError('This product name has already existed');
     console.log('data from create', data);
@@ -37,6 +77,9 @@ export class SpuRepository implements ISpuRepository {
     }
     if (data.spu_thumb) {
       data.spu_thumb = await uploadImage(data?.spu_thumb, `spu`);
+    }
+    if (data.spu_attributes) {
+      data.spu_attributes=await validateAttribute(data.spu_attributes)
     }
 
     //create new
@@ -57,7 +100,7 @@ export class SpuRepository implements ISpuRepository {
     await result.save();
 
     //return as typeof SPU
-    return omitDataSpu(['_id', '__v'], result.toObject());
+    return omitData<SPU>(['_id', '__v'], result.toObject());
   }
   async update(
     data: {
@@ -89,7 +132,7 @@ export class SpuRepository implements ISpuRepository {
     );
     if (!resp) throw new errorResponse.ValidationError('Server Error! Cannot update product');
 
-    const result = omitDataSpu(['_id', '__v'], resp.toObject());
+    const result = omitData<SPU>(['_id', '__v'], resp.toObject());
     return result;
   }
 
@@ -104,7 +147,7 @@ export class SpuRepository implements ISpuRepository {
       deleteImage(i.image_id as string);
     }
     deleteImage(spu.spu_thumb.image_id as string);
-    return omitDataSpu(['_id', '__v'], spu.toObject());
+    return omitData<SPU>(['_id', '__v'], spu.toObject());
   }
   find(limit: number, offset: number): Promise<SPU[]> {
     throw new Error('Method not implemented.');

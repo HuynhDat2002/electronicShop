@@ -1,0 +1,20 @@
+{
+  // Màu mặc định cho workspace này
+  "peacock.color": "#ffffff",
+
+  // Cho Peacock tác động các vùng UI
+  "peacock.affectActivityBar": true,
+  "peacock.affectStatusBar": true,
+  "peacock.affectTitleBar": true,
+
+  // Danh sách màu ưa thích để chuyển nhanh (Command Palette → Peacock: Change to a Favorite Color)
+  "peacock.favoriteColors": [
+    { "name": "Dev", "value": "#0c7d9d" },
+    { "name": "Staging", "value": "#c5a200" },
+    { "name": "Production", "value": "#b30000" },
+    { "name": "Test", "value": "#6a00ff" }
+  ],
+
+  // Màu khi làm việc qua Remote (SSH/Container)
+  "peacock.remoteColor": "#005fb8",
+}

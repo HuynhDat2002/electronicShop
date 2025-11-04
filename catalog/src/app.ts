@@ -1,3 +1,4 @@
+import 'reflect-metadata'; // Must be imported first for decorators
 import express, { Request, Response, NextFunction, Express } from 'express';
 import 'module-alias/register';
 import { asyncHandler } from './helpers';

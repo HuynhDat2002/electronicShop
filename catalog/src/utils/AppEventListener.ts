@@ -2,10 +2,11 @@ import { ElasticSearchService } from '@/services/elasticsearch.service';
 import { EventEmitter } from 'events';
 
 export type SpuEvents='createSpu' | 'updateSpu' | 'deleteSpu'|'deleteIndex'
+export type VariantEvents='createVariant' | 'updateVariant' | 'deleteVariant'|'deleteIndex'
 export type SkuEvents='createSku' | 'updateSku' | 'deleteSku'|'deleteIndex'
 
 export interface EventPayload {
-  event: SpuEvents|SkuEvents;
+  event: SpuEvents|SkuEvents|VariantEvents;
   data?: any;
 }
 

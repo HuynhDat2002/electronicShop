@@ -1,36 +1,85 @@
 import * as rule from 'class-validator';
 import * as skuType from '@/types/sku.type';
+import { Types } from "mongoose";
+
 export class CreateRequest {
   @rule.IsString()
-  @rule.IsNotEmpty({
-    message: 'Tên không được để trống',
-  })
-  @rule.Matches(/^([A-ZÀ-ỸZxa-zà-ỹ0-9]*)(\s[A-ZÀ-ỸZxa-zà-ỹ0-9]*)*$/g, {
-    message: 'Tên phải theo định dạng: Nguyen Van A or Nguyễn Văn A',
-  })
-  sku_name: string;
-
-  @rule.IsString()
-  @rule.IsNotEmpty({
-    message: 'Spu Id không được để trống',
-  })
+  @rule.IsNotEmpty({ message: 'SPU ID không được để trống' })
   sku_spu_id: string;
 
-  @rule.IsNotEmpty({
-    message: 'Giá không được để trống',
-  })
-  sku_price: skuType.Price;
+  @rule.IsString()
+  @rule.IsNotEmpty({ message: 'Tên SKU không được để trống' })
+  sku_name: string;
+
+  @rule.IsObject()
+  @rule.ValidateNested()
+  sku_price: {
+    original: number;
+    sale?: number;
+    cost?: number;
+    currency?: string;
+  };
 
   @rule.IsOptional()
-  sku_default: boolean;
+  @rule.IsArray()
+  sku_variants: {
+    sku_variant_id: Types.ObjectId;
+    sku_variant_name: string;
+    sku_variant_option_value: string;
+  }[];
 
+  @rule.IsOptional()
+  @rule.IsBoolean()
+  sku_default?: boolean;
+
+  @rule.IsOptional()
+  @rule.IsIn(['draft', 'published', 'deleted', 'unPublished'])
+  sku_status: 'draft' | 'published' | 'deleted' | 'unPublished';
+
+  @rule.IsOptional()
+  @rule.IsObject()
+  sku_image?: {
+    image_id?: string;
+    image_url: string;
+    image_name: string;
+  };
+}
+
+export class UpdateRequest {
   @rule.IsOptional()
   @rule.IsString()
-  sku_status: skuType.SKU_Status;
+  sku_name?: string;
 
   @rule.IsOptional()
-  sku_image:{
-    image_url:string,
-    image_name:string
-  }
+  @rule.IsObject()
+  sku_price?: {
+    original?: number;
+    sale?: number;
+    cost?: number;
+    currency?: string;
+  };
+
+  @rule.IsArray()
+  sku_variants: {
+    sku_variant_id: Types.ObjectId;
+    sku_variant_slug: string;
+    sku_variant_option_value: string;
+    sku_variant_option_label: string;
+  }[];
+
+  @rule.IsOptional()
+  @rule.IsBoolean()
+  sku_default?: boolean;
+
+  @rule.IsOptional()
+  @rule.IsIn(['draft', 'published', 'deleted', 'unPublished'])
+  sku_status?: 'draft' | 'published' | 'deleted' | 'unPublished';
+
+  @rule.IsOptional()
+  @rule.IsObject()
+  sku_image?: {
+    image_id?: string;
+    image_url: string;
+    image_name: string;
+  };
 }

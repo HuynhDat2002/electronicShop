@@ -17,11 +17,23 @@ export const RequestValidator = async <T>(
 ) : Promise<{errors:boolean|string; input:T}> => {
     const input = plainToClass(type, body);
     const errors = await validationError(input);
-    if(errors){
-        const errorMessage = errors
-        .map((error:ValidationError) => (Object as any).values(error.constraints))
-        .join(", ")
-        return {errors:errorMessage,input}
-    }
+    if (errors) {
+    const errorMessage = errors
+      .map((error: ValidationError) =>
+        error.constraints
+          ? Object.values(error.constraints)
+          : error.children?.length
+          ? error.children.map((child) =>
+              child.constraints
+                ? Object.values(child.constraints)
+                : []
+            )
+          : []
+      )
+      .flat(2) // gộp các mảng lồng nhau
+      .join(', ');
+
+    return { errors: errorMessage, input };
+  }
     return {errors:false,input}
 }

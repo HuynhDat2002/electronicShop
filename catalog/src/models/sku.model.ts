@@ -1,4 +1,4 @@
-import { Schema } from 'mongoose';
+import { Types } from 'mongoose';
 
 export class SKU {
   constructor(
@@ -12,19 +12,29 @@ export class SKU {
       cost?: number;
       currency?: string;
     },
-    public readonly sku_inventories:Array<string>,
-    public readonly sku_default: boolean,
+    public readonly sku_inventories: Array<string>,
+    public readonly sku_variants: {
+      sku_variant_id: Types.ObjectId;
+      sku_variant_name: string;
+      sku_variant_option_value: string;
+      sku_variant_option_label?: string;
+    }[],
+
     public readonly sku_status: 'draft' | 'published' | 'deleted' | 'unPublished',
     public readonly sku_sold: number,
-    public readonly _id?: Schema.Types.ObjectId,
-    public readonly sku_spu?: Schema.Types.ObjectId,
+    public readonly sku_default?: boolean,
+    public readonly _id?: Types.ObjectId,
+    public readonly sku_spu?: Types.ObjectId,
     public sku_image?: {
       image_id?: string;
       image_url: string;
       image_name: string;
-    },
+    }
   ) {}
 
-  static CreateInput: Omit<SKU, 'sku_id' | 'sku_slug' | 'sku_sold' | '_id' | 'sku_spu'|'sku_inventories'>;
+  static CreateInput: Omit<
+    SKU,
+    'sku_id' | 'sku_slug' | 'sku_sold' | '_id' | 'sku_spu' | 'sku_inventories'
+  >;
   static UpdateInput: Partial<Omit<SKU, 'sku_id' | 'sku_slug' | 'sku_spu_id'>> & { id: string };
 }

@@ -1,6 +1,18 @@
 import * as rule from 'class-validator';
 import * as myType from '@/types';
 
+class Attribute{
+  @rule.IsString()
+  attribute_value_id:string
+  @rule.IsString()
+  attribute_name:string
+
+  @rule.IsString()
+  attribute_value:string
+
+  @rule.IsString()
+  attribute_label:string
+}
 export class CreateRequest {
   @rule.IsString()
   @rule.IsNotEmpty({
@@ -28,6 +40,9 @@ export class CreateRequest {
 
   @rule.IsOptional()
   spu_status: myType.SPU_Status;
+
+  @rule.IsOptional()
+  spu_attributes:Attribute[]
 }
 
 export class UpdateRequest {
