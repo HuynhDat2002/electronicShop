@@ -17,7 +17,7 @@ const invenSchema = new Schema(
     inven_sku: {
       type: Schema.Types.ObjectId,
       ref: 'SKU',
-      index: true,
+      required: true,
     },
     inven_sku_id: { type: String, index: true, required: true }, // để tìm kiếm nhanh
     inven_location: {
@@ -44,7 +44,7 @@ const invenSchema = new Schema(
       ],
       default: [],
     },
-    inven_available: { type: Number, default: 0 },
+    inven_available: { type: Number },
     createdAt: { type: Date, default: Date.now() },
     updatedAt: { type: Date, default: Date.now() },
   },
@@ -54,15 +54,20 @@ const invenSchema = new Schema(
   }
 );
 
-// Virtual để lấy SKUs
-invenSchema.virtual('reser', {
-  ref: 'Reservation',
-  localField: '_id',
-  foreignField: 'reser_inventory_id',
-});
-invenSchema.pre('save', async function (next) {
+invenSchema.pre('validate', async function (next) {
+  if (!this.inven_sku && this.inven_sku_id) {
+    const sku = await this.model('SKU').findOne({ sku_id: this.inven_sku_id });
+    if (sku) this.inven_sku = sku._id;
+  }
   if (this.isNew) {
     (this as any)._wasNew = this.isNew;
+  }
+  next();
+});
+
+invenSchema.pre('save', async function (next) {
+  if (!this.inven_available) {
+    this.inven_available = this.inven_stock;
   }
   next();
 });

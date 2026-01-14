@@ -48,9 +48,8 @@ const variantSchema = new Schema(
           variant_options: {
             type: [
               {
-                option_value: { type: String, required: true }, //"red", "256gb"
+                option_value: { type: String, required: true ,unique:true}, //"red", "256gb"
                 option_label: { type: String, required: true }, // "đỏ", "256gb"
-                option_code: { type: String, default: '' }, //"#FF0000","256gb"
               },
             ],
             default: [],
@@ -105,33 +104,13 @@ variantSchema.pre('validate', async function (next) {
   next();
 });
 
-// pre option - sort options trong mỗi variant ====================
-variantSchema.pre('save', function (next) {
-  if (this.variant_list && this.variant_list.length > 0) {
-    this.variant_list.forEach((variant: any) => {
-      if (variant.variant_options && variant.variant_options.length > 0) {
-        variant.variant_options.sort((a: any, b: any) => {
-          const aVal = parseStorageValue(a.option_label || a.option_value);
-          const bVal = parseStorageValue(b.option_label || b.option_value);
-          return aVal - bVal;
-        });
-      }
-    });
-
-    // Sort variant_list by position
-    this.variant_list.sort((a: any, b: any) => {
-      return (a.variant_position || 0) - (b.variant_position || 0);
-    });
-  }
-  next();
-});
 
 // post spu ==============
 variantSchema.post('save', async function (doc) {
   if ((this as any)._wasNew) {
     const Spu = this.model('SPU');
     await Spu.findByIdAndUpdate(this.variant_spu, {
-      $addToSet: { spu_variants: this._id },
+      $set: { spu_variants: this._id },
     });
   }
 });

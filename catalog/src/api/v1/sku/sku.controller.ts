@@ -11,16 +11,24 @@ export class SkuController {
   async create(req: Request, res: Response, next: NextFunction) {
     //check input
     let file = req.file as any;
-    
     if (file) {
       file ={
         image_name: file.originalname,
         image_url: file.path,
       } as { image_name: string; image_url: string };
     }
+    
+    // Parse FormData fields
+    const parsedBody = {
+      ...req.body,
+      sku_image: file,
+      sku_price: JSON.parse(req.body.sku_price),
+      sku_variants: JSON.parse(req.body.sku_variants),
+      sku_default: req.body.sku_default === 'true'
+    };
+    console.log('parsebody',parsedBody)
 
-    console.log('files from input', file);
-    let { errors, input } = await RequestValidator(skuDto.CreateRequest, { ...req.body, ...{sku_image:file,sku_price:JSON.parse(req.body.sku_price),sku_variants:JSON.parse(req.body.sku_variants)} });
+    let { errors, input } = await RequestValidator(skuDto.CreateRequest, parsedBody);
     if (errors) throw new errorResponse.ValidationError(errors.toString());
     
     console.log('input from sku create',input)

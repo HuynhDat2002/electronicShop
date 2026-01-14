@@ -12,12 +12,12 @@ export class SKU {
       cost?: number;
       currency?: string;
     },
-    public readonly sku_inventories: Array<string>,
+    public readonly sku_inventories: Array<Types.ObjectId>,
     public readonly sku_variants: {
-      sku_variant_id: Types.ObjectId;
-      sku_variant_name: string;
-      sku_variant_option_value: string;
-      sku_variant_option_label?: string;
+      variant_name: string;
+      variant_slug: string;
+      option_value: string;
+      option_label: string;
     }[],
 
     public readonly sku_status: 'draft' | 'published' | 'deleted' | 'unPublished',

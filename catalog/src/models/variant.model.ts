@@ -1,9 +1,8 @@
-import { Schema, Types } from 'mongoose';
+import { Types } from 'mongoose';
 
 export interface VariantOption {
   option_value: string; // "red", "256gb"
   option_label: string; // "Đỏ", "256GB"
-  option_code?: string; // "#FF0000", ""
 }
 
 export interface VariantItem {

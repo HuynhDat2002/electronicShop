@@ -1,4 +1,4 @@
-import { Schema } from "mongoose";
+import { Schema, Types } from "mongoose";
 
 export class INVENTORY {
   constructor(
@@ -7,7 +7,7 @@ export class INVENTORY {
     public readonly inven_stock: number,
     public readonly inven_available: number,
     public readonly inven_status: 'inStock' | 'outOfStock' | 'discontinued',
-    public readonly inven_reserved:Array<string>,
+    public readonly inven_reserved:Array<Types.ObjectId>,
     public readonly inven_location: string,
     public readonly createdAt?: Date,
     public readonly updatedAt?: Date,
@@ -16,7 +16,7 @@ export class INVENTORY {
   ) {}
 
    static CreateInput: Omit<INVENTORY, 'inven_id' | 'inven_sku'|"updatedAt" | 'createdAt' | '_id' >;
-  static UpdateInput: Partial<Omit<INVENTORY, 'inven_id'|'inven_sku_id' | 'spu_slug' | 'createdAt' | '_id'|"updatedAt" |"inven_sku" >> & {
+  static UpdateInput: Partial<Omit<INVENTORY, 'inven_id'|'inven_sku_id' | 'createdAt' | '_id'|"updatedAt" |"inven_sku" >> & {
     id:string
   };
 }

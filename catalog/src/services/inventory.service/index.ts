@@ -13,10 +13,10 @@ export class InventoryService {
     const data = await this._repository.create(input);
     if (!data) throw new errorResponse.ValidationError("Cannot create new inventory");
 
-    AppEventListener.instance.notify({
-      event: "createSpu",
-      data,
-    });
+    // AppEventListener.instance.notify({
+    //   event: "createSpu",
+    //   data,
+    // });
 
     return data;
   }

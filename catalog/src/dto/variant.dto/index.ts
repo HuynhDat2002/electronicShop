@@ -9,10 +9,6 @@ class VariantOptionDto {
   @rule.IsString()
   @rule.IsNotEmpty({ message: "Option label không được để trống" })
   option_label: string;
-
-  @rule.IsOptional()
-  @rule.IsString()
-  option_code?: string;
 }
 
 class VariantItemDto {

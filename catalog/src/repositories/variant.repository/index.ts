@@ -7,6 +7,7 @@ import { omitData } from '@/utils';
 export class VariantRepository implements IVariantRepository {
   async create(data: typeof VARIANT.CreateInput): Promise<VARIANT> {
     // Check if variant for this SPU already exists
+    console.log('data create variant',data)
     const checkExist = await db.findOne({
       variant_spu_id: data.variant_spu_id,
     });
@@ -113,8 +114,6 @@ export class VariantRepository implements IVariantRepository {
       throw new errorResponse.NotFound(`Variant "${variant_name}" not found`);
 
     // Update fields
-    // if (variant_options) variantItem.variant_options = variant_options;
-    if (variant_position !== undefined) variantItem.variant_position = variant_position;
 
     await variant.save();
     return omitData<VARIANT>(['_id', '__v', 'variant_spu'], variant.toObject());

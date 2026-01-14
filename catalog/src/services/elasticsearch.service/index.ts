@@ -8,7 +8,7 @@ import { errorResponse } from '@/utils';
 import { VARIANT } from '@/models/variant.model';
 console.log('elastic-url', process.env.ELASTICSEARCH_URL);
 export class ElasticSearchService {
-  private indexSpu = 'spu';
+  private indexName = 'products';
   private client: Client;
   private spuElasticSearch: SpuElasticSearch;
   constructor() {
@@ -17,8 +17,8 @@ export class ElasticSearchService {
       maxRetries: 10,
       requestTimeout: 10000,
     });
-    this.createIndexSpu();
-    this.spuElasticSearch = new SpuElasticSearch(this.client, this.indexSpu);
+    this.createProductIndex();
+    this.spuElasticSearch = new SpuElasticSearch(this.client, this.indexName);
   }
 
   async handleEvents({ event, data }: EventPayload) {
@@ -45,112 +45,145 @@ export class ElasticSearchService {
         break;
     }
   }
-  async createIndexSpu() {
-    const indexExists = await this.client.indices.exists({ index: this.indexSpu });
+  async createProductIndex() {
+    const indexExists = await this.client.indices.exists({ index: this.indexName });
     if (!indexExists) {
-      console.log('Index spu does not exist, creating index:', this.indexSpu);
+      console.log('Index products does not exist, creating index:', this.indexName);
       const result = await this.client.indices.create({
-        index: this.indexSpu,
+        index: this.indexName,
         body: {
+          settings: {
+            number_of_shards: 1,
+            number_of_replicas: 1,
+          },
           mappings: {
             properties: {
-              spu_id: { type: 'keyword' }, // tìm exact match
-              spu_name: { type: 'text' }, // full-text search
-              spu_slug: { type: 'keyword' }, // unique, query nhanh
-              spu_description: { type: 'text' }, // search mô tả
-              spu_image: {
-                type: 'nested',
-                properties: {
-                  image_id: { type: 'keyword' },
-                  image_url: { type: 'text' },
-                  image_name: { type: 'text' },
+              // === BASIC INFO ===
+              spu_id: { type: 'keyword' },
+              spu_name: {
+                type: 'text',
+                fields: {
+                  keyword: { type: 'keyword' },
+                  raw: { type: 'text', analyzer: 'standard' },
                 },
               },
+              spu_slug: { type: 'keyword' },
+              spu_description: {
+                type: 'text',
+              },
+              spu_status: { type: 'keyword' },
+
+              // === THUMBNAIL (cho card listing) ===
               spu_thumb: {
                 type: 'object',
                 properties: {
                   image_id: { type: 'keyword' },
-                  image_name: { type: 'text' },
                   image_url: { type: 'keyword' },
                 },
               },
-              spu_ratingAverage: { type: 'float' },
 
-              spu_variants: {
-                type: 'nested',
-                properties: {
-                  variation_id: { type: 'keyword' },
-                  variation_slug: { type: 'text' },
-                  variation_options: {
-                    type: 'nested',
-                    properties: {
-                      option_value: { type: 'text' }, //"red", "256gb",
-                      option_label: { type: 'text' }, // "đỏ", "256gb"
-                      option_code: { type: 'text' },
-                    },
-                  },
-                  variation_status: { type: 'text' },
-                },
-              },
-              spu_skus: {
-                type: 'nested',
+              // === DEFAULT SKU (hiển thị trên card) ===
+              default_sku: {
+                type: 'object',
                 properties: {
                   sku_id: { type: 'keyword' },
                   sku_name: { type: 'text' },
-                  sku_slug: { type: 'text' },
-                  sku_price: {
+                  sku_slug: { type: 'keyword' },
+                  price: {
                     type: 'object',
                     properties: {
-                      original: { type: 'float' },
-                      sale: { type: 'float' },
-                      cost: { type: 'float' },
-                      currency: { type: 'text' },
+                      original: { type: 'long' },
+                      sale: { type: 'long' },
+                      currency: { type: 'keyword' },
                     },
                   },
-                  sku_default: { type: 'boolean' },
-                  sku_image: {
+                  discount_percent: { type: 'float' },
+                  image: {
                     type: 'object',
                     properties: {
                       image_id: { type: 'keyword' },
-                      image_name: { type: 'text' },
-                      image_url: { type: 'text' },
+                      image_url: { type: 'keyword' },
                     },
                   },
-                  sku_inventories: {
-                    type: 'nested',
-                    properties: {
-                      inven_stock: { type: 'integer' }, //"red", "256gb",
-                      inven_location: { type: 'text' }, // "đỏ", "256gb"
-                    },
-                  },
+                  stock_status: { type: 'keyword' }, // inStock, outOfStock, lowStock
+                  available_quantity: { type: 'integer' },
                 },
               },
-              spu_attributes: {
+
+              // === PRICE RANGE (all SKUs) ===
+              price_range: {
+                type: 'object',
+                properties: {
+                  min: { type: 'long' },
+                  max: { type: 'long' },
+                },
+              },
+
+              // === VARIANTS (cho filter) ===
+              // Flattened structure for simple filtering
+              variant_colors: { type: 'keyword' },
+              variant_storages: { type: 'keyword' },
+              variant_rams: { type: 'keyword' },
+              variant_sizes: { type: 'keyword' },
+
+              variants_detail: {
                 type: 'nested',
                 properties: {
-                  attribute_id: { type: 'keyword' },
-                  attribute_name: { type: 'text' },
-                  attribute_slug: { type: 'text' },
-                  attribute_value: { type: 'text' },
+                  variant_name: { type: 'text' },
+                  variant_slug: { type: 'keyword' },
+                  options: {
+                    type: 'nested',
+                    properties: {
+                      option_value: { type: 'keyword' },
+                      option_label: { type: 'text' },
+                      available: { type: 'boolean' },
+                      min_price: { type: 'long' },
+                      sku_count: { type: 'integer' },
+                    },
+                  },
                 },
               },
-              createdAt: { type: 'date' },
-              updatedAt: { type: 'date' },
+
+              // === ATTRIBUTES (không phải variants) ===
+              attributes: {
+                type: 'nested',
+                properties: {
+                  attribute_name: { type: 'keyword' },
+                  attribute_value: { type: 'text' },
+                  attribute_label: { type: 'text' },
+                },
+              },
+
+              // === SEARCH & FILTER FIELDS ===
+              category_id: { type: 'keyword' },
+              brand: { type: 'keyword' },
+              rating_average: { type: 'float' },
+              review_count: { type: 'integer' },
+              sold_count: { type: 'integer' },
+
+              // === FLAGS ===
+              is_available: { type: 'boolean' },
+              is_featured: { type: 'boolean' },
+              is_new: { type: 'boolean' },
+
+              // === METADATA ===
+              created_at: { type: 'date' },
+              updated_at: { type: 'date' },
             },
           },
         },
       });
-      if (result) console.log('create index successfully');
+      if (result) console.log('✅ Created products index successfully');
     } else {
-      console.log('Index spu already exists:', this.indexSpu);
+      console.log('Index products already exists:', this.indexName);
     }
   }
 
   async deleteIndex() {
     try {
-      const deleteIndex = await this.client.indices.delete({ index: this.indexSpu });
+      const deleteIndex = await this.client.indices.delete({ index: this.indexName });
       if (deleteIndex) {
-        console.log('Delete index spu successfully');
+        console.log('Delete index products successfully');
       }
     } catch (error) {
       console.log('Delete index error');
@@ -160,7 +193,7 @@ export class ElasticSearchService {
     try {
       const offset = (data.page - 1) * data.limit;
       const result = await this.client.search({
-        index: 'spu',
+        index: this.indexName,
         query:
           data.search.length === 0
             ? {
@@ -169,13 +202,13 @@ export class ElasticSearchService {
             : {
                 multi_match: {
                   query: data.search,
-                  fields: [`spu_name`, `spu_slug`, `spu_description`],
+                  fields: [`spu_name^3`, `spu_slug`, `spu_description`],
                   fuzziness: 'AUTO',
                 },
               },
         sort: [
           {
-            createdAt: {
+            created_at: {
               order: 'desc',
             },
           },
@@ -186,11 +219,11 @@ export class ElasticSearchService {
       console.log('search result from elasticsearch', result.hits.hits);
       return result.hits.hits.map((hit) => hit._source) as SPU[];
     } catch (error) {
-      throw new errorResponse.NotFound(`Not found spu`);
+      throw new errorResponse.NotFound(`Not found products`);
     }
   }
 
-  async getSpuById(id: string, indexName = 'spu'): Promise<any> {
+  async getSpuById(id: string, indexName = 'products'): Promise<any> {
     try {
       const result = await this.client.get({
         index: indexName,

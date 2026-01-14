@@ -7,6 +7,21 @@ import mongoose from 'mongoose';
 const DOCUMENT_NAME = 'SKU';
 const COLLECTION_NAME = 'SKUs';
 
+sku_variants: [
+  {
+    variant_name: 'Color',
+    variant_slug: 'color',
+    option_value: 'blue',
+    option_label: 'Xanh dương',
+  },
+  {
+    variant_name: 'Storage',
+    variant_slug: 'storage',
+    option_value: '256gb',
+    option_label: '256GB',
+  },
+];
+
 const skuSchema = new Schema(
   {
     sku_id: {
@@ -83,15 +98,12 @@ const skuSchema = new Schema(
           variant_slug: { type: String, required: true }, // "color", "storage"
           option_value: { type: String, required: true }, // "red", "128gb"
           option_label: { type: String, required: true }, // "Đỏ", "128GB"
-          option_code: { type: String, default: '' }, // "#FF0000", ""
         },
       ],
       default: [],
     },
-    sku_tier_index: {
-      type: [Number],
-      default: [], // VD: [0, 1] nghĩa là option thứ 0 của variant thứ 1, option thứ 1 của variant thứ 2
-    },
+    createdAt: { type: Date, default: Date.now() },
+    updatedAt: { type: Date, default: Date.now() },
   },
   {
     timestamps: true,
@@ -99,13 +111,13 @@ const skuSchema = new Schema(
   }
 );
 
-skuSchema.virtual('inven', {
-  ref: 'Inventory',
-  localField: '_id',
-  foreignField: 'inven_sku_id',
-});
-skuSchema.set('toObject', { virtuals: true });
-skuSchema.set('toJSON', { virtuals: true });
+// skuSchema.virtual('inven', {
+//   ref: 'Inventory',
+//   localField: '_id',
+//   foreignField: 'inven_sku_id',
+// });
+// skuSchema.set('toObject', { virtuals: true });
+// skuSchema.set('toJSON', { virtuals: true });
 
 //===========pre==========================
 skuSchema.pre('save', function (next) {

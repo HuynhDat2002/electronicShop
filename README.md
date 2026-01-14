@@ -40,3 +40,6 @@ http://localhost:9001
 ```bash
 npm run build
 ```
+
+sudo docker compose -f docker-compose.dev.yml up
+sudo docker logs electronicshop-catalog-electronic-1

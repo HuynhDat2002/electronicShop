@@ -1,6 +1,5 @@
 import * as rule from 'class-validator';
 import * as skuType from '@/types/sku.type';
-import { Types } from "mongoose";
 
 export class CreateRequest {
   @rule.IsString()
@@ -12,7 +11,6 @@ export class CreateRequest {
   sku_name: string;
 
   @rule.IsObject()
-  @rule.ValidateNested()
   sku_price: {
     original: number;
     sale?: number;
@@ -23,14 +21,15 @@ export class CreateRequest {
   @rule.IsOptional()
   @rule.IsArray()
   sku_variants: {
-    sku_variant_id: Types.ObjectId;
-    sku_variant_name: string;
-    sku_variant_option_value: string;
+    variant_name: string;
+    variant_slug: string;
+    option_value: string;
+    option_label: string;
   }[];
 
   @rule.IsOptional()
   @rule.IsBoolean()
-  sku_default?: boolean;
+  sku_default: boolean;
 
   @rule.IsOptional()
   @rule.IsIn(['draft', 'published', 'deleted', 'unPublished'])
@@ -48,36 +47,37 @@ export class CreateRequest {
 export class UpdateRequest {
   @rule.IsOptional()
   @rule.IsString()
-  sku_name?: string;
+  sku_name: string;
 
   @rule.IsOptional()
   @rule.IsObject()
-  sku_price?: {
+  sku_price: {
     original?: number;
     sale?: number;
     cost?: number;
     currency?: string;
   };
 
+  @rule.IsOptional()
   @rule.IsArray()
   sku_variants: {
-    sku_variant_id: Types.ObjectId;
-    sku_variant_slug: string;
-    sku_variant_option_value: string;
-    sku_variant_option_label: string;
+    variant_name: string;
+    variant_slug: string;
+    option_value: string;
+    option_label: string;
   }[];
 
   @rule.IsOptional()
   @rule.IsBoolean()
-  sku_default?: boolean;
+  sku_default: boolean;
 
   @rule.IsOptional()
   @rule.IsIn(['draft', 'published', 'deleted', 'unPublished'])
-  sku_status?: 'draft' | 'published' | 'deleted' | 'unPublished';
+  sku_status: 'draft' | 'published' | 'deleted' | 'unPublished';
 
   @rule.IsOptional()
   @rule.IsObject()
-  sku_image?: {
+  sku_image: {
     image_id?: string;
     image_url: string;
     image_name: string;
